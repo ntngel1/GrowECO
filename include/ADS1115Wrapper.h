@@ -17,7 +17,8 @@ class ADS1115Reader : public ISensorReader {
     
         float read(void) {
             uint16_t value = _ads -> readADC_SingleEnded(_channel);
-            return map(value, 0, maxValue, 0, 100);
+            value = map(value, 0, maxValue, 0, 100);
+            return (value > 100 ? 0 : value);
         }
 
     private:

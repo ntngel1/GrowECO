@@ -1,50 +1,38 @@
-#include "Arduino.h"
 #include <global.hpp>
-#include "NetworkController.h"
 using namespace Global;
-
 #define cast(var, type) dynamic_cast<type>(var)
 
-void setup(void)
-{
-  pinMode(D6, OUTPUT);
-  digitalWrite(D6, HIGH);
-  delay(5000);
-  Serial.begin(9600);
-
-  ads1115.attach(0, cast(&waterLevel, IAnalogSensor*));
-  ads1115.attach(1, cast(&gndHumidity, IAnalogSensor*));
-  /*
-  server.connectWiFi("100 rubley odin chas", "Marmaz111");
-  switch (server.checkServer()) {
-    case ServerController::SERVER_CONNECTED:
-      Serial.println("Подключен к серверу!");
-      break;
-    case ServerController::BAD_AUTH_KEY:
-      Serial.println("Неверный токен!");
-      break;
-    case ServerController::SERVER_ERROR:
-      Serial.println("Непредвиденная ошибка сервера!");
-      break;
-  }
-  */
-  //NetworkController net;
-  //net.connectWiFi();
-}
+void uploadSensorsData(void);
+void handleActions(void);
 
 void loop(void)
 {
-  /*
-  ClimateData data;
-  data.groundHumidity = cast(&gndHumidity, IAnalogSensor*) -> getValueInPercentages();
-  data.groundTemperature = cast(&dallasSensor, ITemperatureSensor*) -> getTemperature();
-  data.airTemperature = cast(&dhtSensor, ITemperatureSensor*) -> getTemperature();
-  data.airHumidity = cast(&dhtSensor, IHumiditySensor*) -> getHumidity();
-  data.water = waterLevel.read();
+  uploadSensorsData();
+  delay(1000);
+}
 
-  server.updateParameters(&data);
-  delay(1000);
-  */
-  debug_error("test");
-  delay(1000);
+void uploadSensorsData(void) {
+  ClimateData data;
+  data.groundHumidity = cast(&GroundHumidity, IAnalogSensor*) -> getValueInPercentages();
+  data.groundTemperature = cast(&GroundTemperature, ITemperatureSensor*) -> getTemperature();
+  data.airTemperature = cast(&Air, ITemperatureSensor*) -> getTemperature();
+  data.airHumidity = cast(&Air, IHumiditySensor*) -> getHumidity();
+  data.water = WaterLevel.read();
+
+  debug_message("gndhum: ");
+  Serial.println(data.groundHumidity);
+
+  debug_message("gndtemp: ");
+  Serial.println(data.groundTemperature);
+
+  debug_message("airtemp: ");
+  Serial.println(data.airTemperature);
+
+  debug_message("airHum: ");
+  Serial.println(data.airHumidity);
+
+  debug_message("water: ");
+  Serial.println(data.water);
+
+  ServerController::updateSensors(&data);
 }

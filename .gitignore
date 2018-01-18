@@ -2,3 +2,9 @@
 .piolibdeps
 .clang_complete
 .gcc-flags.json
+.vscode
+.lib
+
+.DS_Store
+.vscode/c_cpp_properties.json
+.vscode/launch.json

@@ -1,11 +1,6 @@
-#ifndef GROWECO_DEBUG_H_
-#define GROWECO_DEBUG_H_
+#include "groweco_debug.h"
 
-#include <Arduino.h>
-#include <stdio.h>
-
-
-inline char* __get_current_time__() {
+char* __get_current_time__() {
 	unsigned long time = millis() / 1000;
 
 	unsigned long hours = time / 3600;
@@ -37,6 +32,3 @@ void debug_message(const char* msg) {
 		Serial.println(msg);
 	#endif
 }
-
-
-#endif

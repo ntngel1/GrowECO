@@ -8,6 +8,7 @@
 #include "Wire.h"
 #include "Hardware.h"
 
+#include "groweco_debug.h"
 #include "DHT.h"
 
 #include "ADS1115Wrapper.h"
@@ -21,26 +22,23 @@
 #include "ISensorReader.h"
 
 #include "ServerController.h"
+#include "NetworkController.h"
 #include "ClimateData.h"
-#include "groweco_debug.h"
+//#include "ActionData.h"
+#include "DataStore.h"
 
 namespace Global {
-  ServerController server(SERVER_ADDR, AUTH_KEY);
+  extern DHT _dht;
 
-  DHT _dht(HARDWARE_AIR_SENSOR_PIN, DHT11);
+  extern ADS1115Wrapper ads1115;
 
-  ADS1115Wrapper ads1115(0x49);
+  extern DHTWrapper Air;
 
-  DallasWrapper dallasSensor(
-    new DallasStandartReader(HARDWARE_GROUND_TEMP_SENSOR_PIN));
+  extern DallasWrapper GroundTemperature;
+  
+  extern HygrometerWrapper GroundHumidity;
 
-    DHTWrapper dhtSensor(
-    new DHTStandartHumidityReader(&_dht),
-    new DHTStandartTemperatureReader(&_dht)
-  );
-
-  HygrometerWrapper waterLevel;
-  HygrometerWrapper gndHumidity(new HygrometerStandartReader(HARDWARE_GROUND_HUMIDITY_SENSOR_PIN));
+  extern HygrometerWrapper WaterLevel;
 }
 
 #endif
