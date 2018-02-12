@@ -38,12 +38,19 @@ class ServerController {
             HTTPStatusCode statusCode;
         };
 
+        struct Settings {
+            bool autowatering_enabled;
+            uint8_t autowatering_threshold;
+        };
+
         /**
          * Set other Token
          * @param  token Device Token
          * @return          Status of Connection (CONNECTION_SERVER_CONNECTED, CONNECTION_BAD_AUTH_KEY or CONNECTION_SERVER_ERROR)
          */
-        static void setToken(const char* token) {
+        static void setToken(String token) {
+            Serial.print("Set token to ");
+            Serial.println(token);
             _token = token;
         }
 
@@ -57,9 +64,14 @@ class ServerController {
          */
         static void updateSensors(ClimateData *data);
 
+        static void getSettings(bool ifUpdated = true);
+
 
         static ActionData getAction(void);
+
+    
         HTTPStatusCode lastStatusCode = 0; // contains last HTTP status code
+        static Settings settings;
 
     private:
         static ConnectionStatus checkServer(void);
@@ -68,9 +80,9 @@ class ServerController {
         static JsonObject& parseObject(HTTPResponse& response);
 
 
-        static const char* _token;
+        static String _token;
         static const char* _host;
-        static StaticJsonBuffer<1024> jsonBuffer;
+        static DynamicJsonBuffer jsonBuffer;
 
         ServerController(void) {}
         ~ServerController(void) {}

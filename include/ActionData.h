@@ -2,6 +2,7 @@
 #define ACTION_DATA_H_
 
 #include "ArduinoJson.h"
+#include <Arduino.h>
 
 struct ActionData {
   uint8_t actionCode;
@@ -12,7 +13,8 @@ struct ActionData {
     if (!root.success()) {
       return;
     }
-    uint8_t actionCode = root["action_code"].as<uint8_t>();
+    uint8_t actionCode = root["action"]["action_code"].as<uint8_t>();
+    jsonBuffer.clear();
     this->actionCode = actionCode;
   }
 };

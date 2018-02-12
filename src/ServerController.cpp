@@ -1,8 +1,9 @@
 #include "ServerController.h"
 
 const char* ServerController::_host = "";
-const char* ServerController::_token = "";
-StaticJsonBuffer<1024> ServerController::jsonBuffer;
+String ServerController::_token = "";
+DynamicJsonBuffer ServerController::jsonBuffer(512);
+ServerController::Settings ServerController::settings;
 
 ServerController::ConnectionStatus ServerController::checkServer(void)
 {
@@ -16,6 +17,7 @@ ServerController::ConnectionStatus ServerController::checkServer(void)
         return SERVER_ERROR;
     }
 
+    ServerController::jsonBuffer.clear();
     return SERVER_CONNECTED;
 }
 
@@ -29,13 +31,11 @@ ServerController::HTTPResponse ServerController::doRequest(const char* path, con
         http.addHeader("Content-Type", "plain/text");
 
     HTTPStatusCode statusCode = http.sendRequest(requestType, json);
-    debug_message(_token);
     String data;
     if (statusCode != 0)
         data = http.getString();
 
     HTTPResponse response(statusCode, data);
-    debug_message(data.c_str());
 
     http.end();
     return response;
@@ -54,13 +54,42 @@ JsonObject& ServerController::parseObject(ServerController::HTTPResponse& respon
 void ServerController::updateSensors(ClimateData *data)
 {
     String path = String(_host) + "/sensors/update/" + String(_token);
+    Serial.print("Path: ");
+    Serial.println(path);
     String json = data->toJson();
     doRequest(path.c_str(), "PUT", json);
+    ServerController::jsonBuffer.clear();
 }
 
 ActionData ServerController::getAction(void) {
     String path = String(_host) + "/actions/get/" + String(_token);
     ServerController::HTTPResponse r = doRequest(path.c_str(), "GET");
+    ActionData d(r.data);
+    ServerController::jsonBuffer.clear();
+    return d;
+}
 
-    return ActionData(r.data);
+void ServerController::getSettings(bool ifUpdated) {
+    String path = String(_host) + "/settings/hasUpdates/" + String(_token);
+    
+    if (ifUpdated) {
+        ServerController::HTTPResponse r = doRequest(path.c_str(), "GET");
+
+        JsonObject& info = parseObject(r);
+        if (!info["has_updates"].as<bool>()) {
+            jsonBuffer.clear();
+            return;
+        }
+        
+        jsonBuffer.clear();
+    }
+
+    path = String(_host) + "/settings/get/" + String(_token);
+    ServerController::HTTPResponse r = doRequest(path.c_str(), "GET");
+    JsonObject& s = parseObject(r);
+
+    settings.autowatering_enabled = s["autowatering_enabled"].as<bool>();
+    settings.autowatering_threshold = s["autowatering_threshold"].as<uint8_t>();
+
+    jsonBuffer.clear();
 }

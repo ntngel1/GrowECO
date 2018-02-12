@@ -23,9 +23,13 @@
 
 #include "ServerController.h"
 #include "NetworkController.h"
-#include "ClimateData.h"
-//#include "ActionData.h"
+#include "WateringController.h"
+#include "GatewayController.h"
+#include "ActionHandler.h"
 #include "DataStore.h"
+
+#include "ActionData.h"
+#include "ClimateData.h"
 
 namespace Global {
   extern DHT _dht;
@@ -33,12 +37,12 @@ namespace Global {
   extern ADS1115Wrapper ads1115;
 
   extern DHTWrapper Air;
-
-  extern DallasWrapper GroundTemperature;
   
   extern HygrometerWrapper GroundHumidity;
 
   extern HygrometerWrapper WaterLevel;
+
+  extern WateringController wateringController;
 }
 
 #endif

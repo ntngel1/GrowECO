@@ -20,6 +20,7 @@ struct ClimateData {
   uint8_t airHumidity;
   uint8_t airTemperature;
   uint8_t water;
+  uint16_t pressure;
 
   String toJson(void) {
     StaticJsonBuffer<256> jsonBuffer; // буфер для парсинга JSON
@@ -30,9 +31,11 @@ struct ClimateData {
     json["air_humidity"] = this->airHumidity;
     json["air_temperature"] = this->airTemperature;
     json["water"] = this->water;
+    json["pressure"] = this->pressure;
 
     String jsonText;
     json.printTo(jsonText); // кодируем JSON в текст
+    jsonBuffer.clear();
 
     return jsonText;
   }

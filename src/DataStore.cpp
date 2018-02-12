@@ -3,127 +3,96 @@
 void DataStore::save(const char* key, const char* value) {
     SPIFFS.begin();
 
-    File f = SPIFFS.open("/variables.ds", "r");
+    File f = SPIFFS.open("/sets.ds", "r");
     if (!f) {
-        debug_error("File didn't open!");
-        return;
-    }
-
-    uint length = f.size();
-    char* content = new char[length];
-    f.readBytes(content, length);
-    f.close();
-
-    JsonObject* json = decode_json(content);
-    (*json)[key] = value;
-    
-    String buffer;
-    json->printTo(buffer);
-
-    f = SPIFFS.open("/variables.ds", "w");
-    f.print(buffer);
-    f.close();
-
-    SPIFFS.end();
-}
-
-const char* DataStore::read(const char* key) {
-    SPIFFS.begin();
-
-    File f = SPIFFS.open("/variables.ds", "r");
-    if (!f) {
-        debug_error("File didn't open!");
-        return "";
-    }
-
-    uint length = f.size();
-    char* content = new char[length];
-    f.readBytes(content, length);
-    f.close();
-
-    SPIFFS.end();
-
-    JsonObject* json = decode_json(content);
-
-    return (*json)[key];
-}
-
-void DataStore::remove(const char* key) {
-    SPIFFS.begin();
-
-    File f = SPIFFS.open("/variables.ds", "r");
-    if (!f) {
-        debug_error("File didn't open!");
-        return;
-    }
-
-    uint length = f.size();
-    char* content = new char[length];
-    f.readBytes(content, length);
-    f.close();
-
-    JsonObject* json = decode_json(content);
-    json->remove(key);
-    
-    String buffer;
-    json->printTo(buffer);
-
-    f = SPIFFS.open("/variables.ds", "w");
-    f.print(buffer);
-    f.close();
-
-    SPIFFS.end();
-}
-
-bool DataStore::isExists(const char* key) {
-    SPIFFS.begin();
-
-    File f = SPIFFS.open("/variables.ds", "r");
-    if (!f) {
-        debug_error("File didn't open!");
-        return "";
-    }
-
-    uint length = f.size();
-    char* content = new char[length];
-    f.readBytes(content, length);
-    f.close();
-
-    SPIFFS.end();
-
-    JsonObject* json = decode_json(content);
-
-    return json->containsKey(key);
-}
-
-void DataStore::init_storage_file(const char* filename) {
-    File f = SPIFFS.open(filename, "w");
-    f.println("{}");
-    f.close();
-}
-
-JsonObject* DataStore::decode_json(const char* json) {
-    StaticJsonBuffer<1024> jsonBuffer;
-    JsonObject* decoded;
-    bool isInitialized = false;
-
-    while (true) {
-        decoded = &(jsonBuffer.parseObject(json));
-
-        if (!decoded->success()) {
-            if (isInitialized) {
-                debug_error("Couldn't pass json!");
-                delete json;
-                return decoded;
-            }
-            
-            init_storage_file("/variables.ds");
-            isInitialized = true;
-            continue;
+        f.close();
+        debug_error("File didn't open! Creating it");
+        f = SPIFFS.open("/sets.ds", "w");
+        if (!f) {
+            SPIFFS.end();
+            f.close();
+            debug_error("File didn't create!");
+            return;
         }
+        f.close();
+    }
+    f.close();
+    f = SPIFFS.open("/sets.ds", "r");
 
-        break;
+    uint length = f.size();
+    char* content = new char[length + 30];
+    f.readBytes(content, length);
+    f.close();
+    content[length] = '\0';
+
+    StaticJsonBuffer<256> jsonBuffer;
+    JsonObject& json = jsonBuffer.parseObject(content);
+
+    bool isClear = false;
+
+    if (!json.success()) {
+        isClear = true;
+        jsonBuffer.clear();
+    }
+    
+    if (isClear) {
+        JsonObject& j = jsonBuffer.createObject();
+        j[key] = value;
+
+        String buffer;
+        j.printTo(buffer);
+
+        f = SPIFFS.open("/sets.ds", "w");
+        f.print(buffer);
+        f.close();
+        delete content;
+        return;
     }
 
-    return decoded;
+    json[key] = value;
+
+    String buffer;
+    json.printTo(buffer);
+
+    f = SPIFFS.open("/sets.ds", "w");
+    f.print(buffer);
+    f.close();
+
+    SPIFFS.end();
+    delete content;
+    jsonBuffer.clear();
+}
+
+String DataStore::read(const char* key) {
+    SPIFFS.begin();
+
+    File f = SPIFFS.open("/sets.ds", "r");
+    if (!f) {
+        SPIFFS.end();
+        f.close();
+        debug_error("File didn't open!");
+        return "";
+    }
+
+    uint length = f.size();
+    char* content = new char[length + 30];
+    f.readBytes(content, length);
+    content[length] = '\0';
+    f.close();
+    SPIFFS.end();
+
+    StaticJsonBuffer<256> jsonBuffer;
+    JsonObject& json = jsonBuffer.parseObject(content);
+
+    if (!json.success()) {
+        debug_error("ERROR WHILE PARSING IN READ");
+        jsonBuffer.clear();
+        delete content;
+        return "";
+    }
+
+    String r = json[key].as<String>();
+    jsonBuffer.clear();
+    delete content;
+    return r;
 }

@@ -1,6 +1,7 @@
 #include "ActionHandler.h"
 
 std::function<void(void)> ActionHandler::action_handlers[] = {
+    ActionHandlers::__none_handler__,
     ActionHandlers::__watering_handler__
 };
 
